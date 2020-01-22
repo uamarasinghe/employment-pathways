@@ -177,8 +177,8 @@ var margin = {top: 20, right: 0, bottom: 20, left: 350},
 var i = 0,
 	duration = 750;
 
-var tree = d3.layout.tree()
-	.size([height, width]);
+var tree = d3.tree()
+	.nodeSize([width, height]);
 
 var diagonal = d3.svg.diagonal()
 	.projection(function(d) { return [d.y, d.x]; });
