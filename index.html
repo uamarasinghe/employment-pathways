@@ -6,7 +6,31 @@
     <title>Employment Pathways</title>
 
     <style>
-    	<link rel="stylesheet" type="text/css" href="styles.css">
+	    
+    .node {
+	cursor: pointer;
+	}
+
+    .node circle {
+	  fill: #fff;
+	  stroke: steelblue;
+	  stroke-width: 3px;
+	}
+
+    .node text {
+	font: 12px sans-serif;
+	}
+
+    .node text tspan:first-child{
+	font-weight: bold;
+  	}
+
+    .link {
+	fill: none;
+	stroke: #ccc;
+	stroke-width: 2px;
+	}
+
     </style>
     
     <script src="https://d3js.org/d3.v3.min.js"></script>
