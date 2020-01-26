@@ -1,388 +1,317 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container">
-    <a class="navbar-brand" href="#">Animated Dropdown</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Click Me!
-        </a>
-          <!-- Here's the magic. Add the .animate and .slide-in classes to your .dropdown-menu and you're all set! -->
-          <div class="dropdown-menu dropdown-menu-right animate slideIn" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Action</a>
-            <a class="dropdown-item" href="#">Another action</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Something else here</a>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="container text-center">
-  <h1 class="mt-5 text-white font-weight-light">Animated Bootstrap Navbar Dropdowns</h1>
-  <p class="lead text-white-50">An attractive yet subtle dropdown animation for dropdown menus loacated within a Bootstrap navbar</p>
-</div>
-
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
-
     <title>Employment Pathways</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- load the d3.js library -->
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="js/tree-boxes.js" type="text/javascript"></script>
 
-    <style>
-
-	.node {
-		cursor: pointer;
-	}
-
-	.node circle {
-	  fill: #fff;
-	  stroke: steelblue;
-	  stroke-width: 3px;
-	}
-
-	.node text {
-    font: 12px sans-serif;
-  }
-
-  .node text tspan:first-child{
-    font-weight: bold;
-  }
-
-	.link {
-	  fill: none;
-	  stroke: #ccc;
-	  stroke-width: 2px;
-	}
-
-    </style>
-<!-- load the d3.js library -->
-<!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
-<script src="https://d3js.org/d3.v3.min.js"></script>
-<script src="tree-boxes.js" type="text/javascript"></script>
-	  
-<!-- <script src="https://github.com/swayvil/d3js-tree-boxes/edit/master/src/scripts/tree-boxes.js"></script>	   -->
-<!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script> -->
-<!-- <script src="https://d3js.org/d3.v5.min.js"></script> -->
-<!-- <script src="tree-boxes.js" type="text/javascript"></script> -->
-	  
   </head>
 
   <body>
+    
+    <script>
+
+      var df;
+      const job_info = {}
+      const immediatePathways = []
+      const jobs = {}
+      var startingJob = "11-1011.00",
+        startingJobName = "Chief Executives",
+        jobsInPath = [],
+        jobTitles = [],
+        nodes = [],
+        selectValue,
+        links = [],
+        network_data = {},
+        generateTreeData,
+        getTargetJobs,
+        depth = 4,
+        root;
+
+      // build jobs json using pathway_results.csv data
+      d3.csv("data/pathway_results.csv", function(data) {
+        data.forEach(function (object){
+          if (!jobs[object.soc_start]){
+            jobs[object.soc_start] = {
+              Title: object.title_start,
+              Risk: object.risk_start,
+              Salary: object.salarymax_start,
+              Soc: object.soc_start,
+              TargetJobs: [],
+            };
+            nodes.push({id:object.soc_start, name: object.title_start})
+            jobTitles.push(object.title_start)
+          };
+          jobs[object.soc_start].TargetJobs.push({
+                                            Title: object.title_end,
+                                            Soc: object.soc_end,
+                                            Risk: object.risk_end,
+                                            Salary: object.salarymax_end
+                                            });
+          links.push({source:object.soc_start, target: object.soc_end})
+          network_data = {nodes, links}
+        })
+
+      // function to get the 5 nearest neighbouring occupations for a given starting occupation
+      var getTargetJobs = function(startingJob) {
+        var children = [],
+            i = 0;
+            while (children.length < 5){
+              if (jobsInPath.includes(jobs[startingJob].TargetJobs[i].Soc)) {
+                i++
+              } else {
+                children.push({'name': jobs[startingJob].TargetJobs[i].Title,
+                               'parent': jobs[startingJob].Title,
+                               'soc': jobs[startingJob].TargetJobs[i].Soc,
+                               'risk': jobs[startingJob].TargetJobs[i].Risk,
+                               'salary': jobs[startingJob].TargetJobs[i].Salary
+                             })
+                           }
+                           i ++
+                         };
+                         return children
+                       };
+
+      // given the starting occupation, generate nested tree json structure to visualize 
+      // employment pathways in a tree structure
+        var generateTreeData = function(startingJob) {
+          jobsInPath.push(startingJob)
+          var pathway = [{
+            "soc": startingJob,
+            "name": startingJobName,
+            "risk": jobs[startingJob].Risk,
+            "salary": jobs[startingJob].Salary,
+            "parent": "null",
+            "children": getTargetJobs(startingJob)
+          }]
+          pathway[0].children.forEach(function (targetJob){
+            jobsInPath.push(targetJob.soc)
+            console.log(jobsInPath)
+            targetJob["children"] = getTargetJobs(targetJob.soc)
+            targetJob.children.forEach(function (targetJobNextLvl){
+              jobsInPath.push(targetJobNextLvl.soc)
+              console.log(jobsInPath)
+              targetJobNextLvl["children"] = getTargetJobs(targetJobNextLvl.soc)
+              jobsInPath.splice(jobsInPath.indexOf(targetJobNextLvl), 1)
+            })
+            jobsInPath.splice(jobsInPath.indexOf(targetJob), 1)
+          })
+          return pathway
+        };
+
+
+        var select = d3.select('body')
+                       .append('select')
+                       .attr('class','select')
+                       .on('change', onchange);
+
+
+      // dropdown to be populated with options - list of O*NET occupations                 
+        var options = select.selectAll('option')
+      	                    .data(jobTitles).enter()
+      	                    .append('option')
+      	                    .text(function (d) { return d; });
+
+
+      // restart employment pathway tree diagram using newly selected occupation from dropdown
+        function onchange() {
+          selectValue = d3.select('select').property('value')
+          jobsInPath = []
+          startingJobName = selectValue
+          startingJob = nodes.find(socName => socName.name === selectValue).id
+          treeData = generateTreeData(startingJob)
+          root = treeData[0]
+          update(root)
+          collapseAll()
+      	  d3.select('body')
+      		  .append('p')
+          };
+        });
 
 
 
+      // ************** Generate the tree diagram	 *****************
+      var margin = {top: 20, right: 0, bottom: 20, left: 350},
+      	// width = 960 - margin.right - margin.left,
+      	// height = 500 - margin.top - margin.bottom;
+        width = window.innerWidth - margin.right - margin.left,
+      	height = window.innerHeight - margin.top - margin.bottom;
 
-<!-- <script src="//code.jquery.com/jquery-1.10.2.js"></script> -->
-<script>
+      var i = 0,
+          duration = 750;
 
-// var select = document.createElement('select');
-// select.innerHTML = data.map(function(jobs){
-//   return '<option value="' + jobs.soc_start + '">' + jobs.title_start + '</option>';
-// }).join('');
+      var tree = d3.layout.tree()
+      	           .size([height, width])
 
-var df;
-const job_info = {}
-const immediatePathways = []
-const jobs = {}
-var startingJob = "11-1011.00",
-  startingJobName = "Chief Executives",
-  jobsInPath = [],
-  jobTitles = [],
-  nodes = [],
-  selectValue="41-2031.00",
-  links = [],
-  network_data = {},
-  generateTreeData,
-  getTargetJobs,
-  depth = 4,
-  root;
+      var diagonal = d3.svg.diagonal()
+      	                   .projection(function(d) {
+                             return [d.y, d.x];
+                           });
 
+      var svg = d3.select("body").append("svg")
+                  .attr("width", width + margin.right + margin.left)
+      	          .attr("height", height + margin.top + margin.bottom)
+                  .append("g")
+      	          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-d3.csv("pathway_results.csv", function(data) {
-  data.forEach(function (object){
-    if (!jobs[object.soc_start]){
-      jobs[object.soc_start] = {
-        Title: object.title_start,
-        Risk: object.risk_start,
-        Salary: object.salarymax_start,
-        Soc: object.soc_start,
-        TargetJobs: [],
-      };
-      nodes.push({id:object.soc_start, name: object.title_start})
-      jobTitles.push(object.title_start)
-    };
-    jobs[object.soc_start].TargetJobs.push({
-                                      Title: object.title_end,
-                                      Soc: object.soc_end,
-                                      Risk: object.risk_end,
-                                      Salary: object.salarymax_end
-                                      });
-    links.push({source:object.soc_start, target: object.soc_end})
-    network_data = {nodes, links}
-  })
+      root = treeData[0];
+      root.x0 = height / 2;
+      root.y0 = 0;
 
-  var getTargetJobs = function(startingJob) {
-    var children = [],
-      i = 0;
-    // for (var i=0; i<5; i++){
-      while (children.length < 5){
-        if (jobsInPath.includes(jobs[startingJob].TargetJobs[i].Soc)) {
-          i++
-        } else {
-          children.push({'name': jobs[startingJob].TargetJobs[i].Title,
-                    'parent': jobs[startingJob].Title,
-                    'soc': jobs[startingJob].TargetJobs[i].Soc,
-                    'risk': jobs[startingJob].TargetJobs[i].Risk,
-                    'salary': jobs[startingJob].TargetJobs[i].Salary
-                    })
+      function collapse(d) {
+        if (d.children) {
+          d._children = d.children;
+          d._children.forEach(collapse);
+          d.children = null;
         }
-        i ++
-    };
-    return children
-  };
+      }
 
-var generateTreeData = function(startingJob) {
-  jobsInPath.push(startingJob)
-  var pathway = [{
-    "soc": startingJob,
-    "name": startingJobName,
-    "risk": jobs[startingJob].Risk,
-    "salary": jobs[startingJob].Salary,
-    "parent": "null",
-    "children": getTargetJobs(startingJob)
-  }]
-    pathway[0].children.forEach(function (targetJob){
-      jobsInPath.push(targetJob.soc)
-      console.log(jobsInPath)
-      targetJob["children"] = getTargetJobs(targetJob.soc)
-      targetJob.children.forEach(function (targetJobNextLvl){
-        jobsInPath.push(targetJobNextLvl.soc)
-        console.log(jobsInPath)
-        targetJobNextLvl["children"] = getTargetJobs(targetJobNextLvl.soc)
-        jobsInPath.splice(jobsInPath.indexOf(targetJobNextLvl), 1)
-      })
-     jobsInPath.splice(jobsInPath.indexOf(targetJob), 1)
-    })
-  return pathway
-}
+      function collapseAll(){
+        root.children.forEach(collapse);
+          collapse(root);
+          update(root);
+      }
 
-  var select = d3.select('body')
-    .append('select')
-    .attr('class','select')
-    .on('change', onchange)
+      update(root);
 
-  var options = select
-    .selectAll('option')
-	  .data(jobTitles).enter()
-	  .append('option')
-	  .text(function (d) { return d; });
+      d3.select(self.frameElement).style("height", "500px");
 
-  function onchange() {
-    selectValue = d3.select('select').property('value')
-    jobsInPath = []
-    startingJobName = selectValue
-    startingJob = nodes.find(socName => socName.name === selectValue).id
-    treeData = generateTreeData(startingJob)
-    root = treeData[0]
-    update(root)
-    collapseAll()
-	  d3.select('body')
-		  .append('p')
-		  // .text(startingJobName  + ' is the last selected option. ')
-  };
-  });
+    function update(source) {
 
-//   var treeData = []
+      // Compute the new tree layout.
+      var nodes = tree.nodes(root).reverse(),
+    	  links = tree.links(nodes);
 
+      // Normalize for fixed-depth.
+      nodes.forEach(function(d) { d.y = d.depth * 325; });
 
+      // Update the nodes…
+      var node = svg.selectAll("g.node")
+    	  .data(nodes, function(d) { return d.id || (d.id = ++i); });
 
-// ************** Generate the tree diagram	 *****************
-var margin = {top: 20, right: 0, bottom: 20, left: 350},
-	// width = 960 - margin.right - margin.left,
-	// height = 500 - margin.top - margin.bottom;
-  width = window.innerWidth - margin.right - margin.left,
-	height = window.innerHeight - margin.top - margin.bottom;
+      // Enter any new nodes at the parent's previous position.
+      var nodeEnter = node.enter().append("g")
+    	  .attr("class", "node")
+    	  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+        .on("click", click);
 
-var i = 0,
-	duration = 750;
+      var textNode = nodeEnter.append("text");
 
-// var tree = d3.tree()
-// 	.nodeSize([width, height]);
-var tree = d3.layout.tree()
-	.size([height, width])
+      nodeEnter.append("circle")
+    	  .attr("r", 1e-6)
+    	  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
-var diagonal = d3.svg.diagonal()
-	.projection(function(d) { return [d.y, d.x]; });
+      textNode.append("tspan")
+    	  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+    	  .attr("dy", "-1em")
+    	  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+    	  .text(function(d) {
+          return d.name;
+        })
+        .style("fill-opacity", 1e-6);
 
-var svg = d3.select("body").append("svg")
-	.attr("width", width + margin.right + margin.left)
-	.attr("height", height + margin.top + margin.bottom)
-  .append("g")
-	.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      textNode.append("tspan")
+    	  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+    	  .attr("dy", "1.25em")
+    	  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+    	  .text(function(d) {
+          return 'Risk: ' + d3.format("%")(d.risk);
+        })
+        .style("fill-opacity", 1e-6);
 
-root = treeData[0];
-root.x0 = height / 2;
-root.y0 = 0;
+      textNode.append("tspan")
+    	  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
+    	  .attr("dy", "1.35em")
+    	  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
+    	  .text(function(d) {
+          return 'Salary: ' + function(salary) {
+            return "$" + d3.format(",.2s")(d.salary);
+          } ();
+        })
+        .style("fill-opacity", 1e-6);
 
-function collapse(d) {
-  if (d.children) {
-  d._children = d.children;
-  d._children.forEach(collapse);
-  d.children = null;
-  }
-}
+      // Transition nodes to their new position.
+      var nodeUpdate = node.transition()
+    	  .duration(duration)
+    	  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
 
-function collapseAll(){
-  root.children.forEach(collapse);
-    collapse(root);
-    update(root);
-}
+      nodeUpdate.select("circle")
+    	  .attr("r", 10)
+    	  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
 
-update(root);
+      nodeUpdate.select("text")
+        .style("fill-opacity", 1);
 
-d3.select(self.frameElement).style("height", "500px");
+      nodeUpdate.selectAll("tspan")
+    	  .style("fill-opacity", 1);
 
-function update(source) {
+      // Transition exiting nodes to the parent's new position.
+      var nodeExit = node.exit().transition()
+    	  .duration(duration)
+    	  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+    	  .remove();
 
-  // Compute the new tree layout.
-  var nodes = tree.nodes(root).reverse(),
-	  links = tree.links(nodes);
+      nodeExit.select("circle")
+    	  .attr("r", 1e-6);
 
-  // Normalize for fixed-depth.
-  nodes.forEach(function(d) { d.y = d.depth * 325; });
+      nodeExit.select("text")
+        .style("fill-opacity", 1e-6);
 
-  // Update the nodes…
-  var node = svg.selectAll("g.node")
-	  .data(nodes, function(d) { return d.id || (d.id = ++i); });
-
-  // Enter any new nodes at the parent's previous position.
-  var nodeEnter = node.enter().append("g")
-	  .attr("class", "node")
-	  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
-    .on("click", click);
-
-  var textNode = nodeEnter.append("text");
-
-  nodeEnter.append("circle")
-	  .attr("r", 1e-6)
-	  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
-
-  textNode.append("tspan")
-	  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
-	  .attr("dy", "-1em")
-	  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-	  .text(function(d) {
-      return d.name;
-    })
-    .style("fill-opacity", 1e-6);
-
-  textNode.append("tspan")
-	  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
-	  .attr("dy", "1.25em")
-	  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-	  .text(function(d) {
-      return 'Risk: ' + d3.format("%")(d.risk);
-    })
-    .style("fill-opacity", 1e-6);
-
-  textNode.append("tspan")
-	  .attr("x", function(d) { return d.children || d._children ? -13 : 13; })
-	  .attr("dy", "1.35em")
-	  .attr("text-anchor", function(d) { return d.children || d._children ? "end" : "start"; })
-	  .text(function(d) {
-      return 'Salary: ' + function(salary) {
-        return "$" + d3.format(",.2s")(d.salary);
-      } ();
-    })
-    .style("fill-opacity", 1e-6);
-
-  // Transition nodes to their new position.
-  var nodeUpdate = node.transition()
-	  .duration(duration)
-	  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
-
-  nodeUpdate.select("circle")
-	  .attr("r", 10)
-	  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
-
-  nodeUpdate.select("text")
-    .style("fill-opacity", 1);
-
-  nodeUpdate.selectAll("tspan")
-	  .style("fill-opacity", 1);
-
-  // Transition exiting nodes to the parent's new position.
-  var nodeExit = node.exit().transition()
-	  .duration(duration)
-	  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
-	  .remove();
-
-  nodeExit.select("circle")
-	  .attr("r", 1e-6);
-
-  nodeExit.select("text")
-    .style("fill-opacity", 1e-6);
-
-  nodeExit.selectAll("tspan")
-	  .style("fill-opacity", 1e-6);
+      nodeExit.selectAll("tspan")
+    	  .style("fill-opacity", 1e-6);
 
 
-  // Update the links…
-  var link = svg.selectAll("path.link")
-	  .data(links, function(d) { return d.target.id; });
+      // Update the links…
+      var link = svg.selectAll("path.link")
+    	  .data(links, function(d) { return d.target.id; });
 
-  // Enter any new links at the parent's previous position.
-  link.enter().insert("path", "g")
-	  .attr("class", "link")
-	  .attr("d", function(d) {
-		var o = {x: source.x0, y: source.y0};
-		return diagonal({source: o, target: o});
-	  });
+      // Enter any new links at the parent's previous position.
+      link.enter().insert("path", "g")
+    	  .attr("class", "link")
+    	  .attr("d", function(d) {
+    		var o = {x: source.x0, y: source.y0};
+    		return diagonal({source: o, target: o});
+    	  });
 
-  // Transition links to their new position.
-  link.transition()
-	  .duration(duration)
-	  .attr("d", diagonal);
+      // Transition links to their new position.
+      link.transition()
+    	  .duration(duration)
+    	  .attr("d", diagonal);
 
-  // Transition exiting nodes to the parent's new position.
-  link.exit().transition()
-	  .duration(duration)
-	  .attr("d", function(d) {
-		var o = {x: source.x, y: source.y};
-		return diagonal({source: o, target: o});
-	  })
-	  .remove();
+      // Transition exiting nodes to the parent's new position.
+      link.exit().transition()
+    	  .duration(duration)
+    	  .attr("d", function(d) {
+    		var o = {x: source.x, y: source.y};
+    		return diagonal({source: o, target: o});
+    	  })
+    	  .remove();
 
-  // Stash the old positions for transition.
-  nodes.forEach(function(d) {
-	d.x0 = d.x;
-	d.y0 = d.y;
-  });
+      // Stash the old positions for transition.
+      nodes.forEach(function(d) {
+    	d.x0 = d.x;
+    	d.y0 = d.y;
+      });
 
-}
+    }
 
-// Toggle children on click.
-function click(d) {
-  if (d.children) {
-	d._children = d.children;
-	d.children = null;
-  } else {
-	d.children = d._children;
-	d._children = null;
-  }
-  update(d);
-}
+    // Toggle children on click.
+    function click(d) {
+      if (d.children) {
+    	d._children = d.children;
+    	d.children = null;
+      } else {
+    	d.children = d._children;
+    	d._children = null;
+      }
+      update(d);
+    }
 
-</script>
+    </script>
 
-  </body>
+    </body>
 </html>
