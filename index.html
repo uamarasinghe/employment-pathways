@@ -31,56 +31,6 @@
 	stroke-width: 2px;
 	}
 	    
-    /* page set up url: https://startbootstrap.com/snippets/animated-navbar-dropdown/ */
-
-@media (min-width: 992px) {
-  	.animate {
-   	animation-duration: 0.3s;
-   	-webkit-animation-duration: 0.3s;
-    	animation-fill-mode: both;
-    	-webkit-animation-fill-mode: both;
-  	}
-	}
-
-@keyframes slideIn {
-  0% {
-    transform: translateY(1rem);
-    opacity: 0;
-  }
-  100% {
-    transform:translateY(0rem);
-    opacity: 1;
-  }
-  0% {
-    transform: translateY(1rem);
-    opacity: 0;
-  }
-}
-
-@-webkit-keyframes slideIn {
-  0% {
-    -webkit-transform: transform;
-    -webkit-opacity: 0;
-  }
-  100% {
-    -webkit-transform: translateY(0);
-    -webkit-opacity: 1;
-  }
-  0% {
-    -webkit-transform: translateY(1rem);
-    -webkit-opacity: 0;
-  }
-}
-
-.slideIn {
-  -webkit-animation-name: slideIn;
-  animation-name: slideIn;
-}
-
-body {
-  background: #007bff;
-  background: linear-gradient(to right, #0062E6, #33AEFF);
-}
     </style>
     
     <script src="https://d3js.org/d3.v3.min.js"></script>
@@ -90,45 +40,7 @@ body {
 
   <body>
 	  
-	  
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container">
-    <a class="navbar-brand" href="#">Animated Dropdown</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Click Me!
-        </a>
-          <!-- Here's the magic. Add the .animate and .slide-in classes to your .dropdown-menu and you're all set! -->
-          <div class="dropdown-menu dropdown-menu-right animate slideIn" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Action</a>
-            <a class="dropdown-item" href="#">Another action</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Something else here</a>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
-<div class="container text-center">
-  <h1 class="mt-5 text-white font-weight-light">Animated Bootstrap Navbar Dropdowns</h1>
-  <p class="lead text-white-50">An attractive yet subtle dropdown animation for dropdown menus loacated within a Bootstrap navbar</p>
-</div>
-
-<!-- <script src="//code.jquery.com/jquery-1.10.2.js"></script> -->
 <script>
-
-// var select = document.createElement('select');
-// select.innerHTML = data.map(function(jobs){
-//   return '<option value="' + jobs.soc_start + '">' + jobs.title_start + '</option>';
-// }).join('');
 
 var df;
 const job_info = {}
@@ -247,6 +159,8 @@ var generateTreeData = function(startingJob) {
 
 
 // ************** Generate the tree diagram	 *****************
+<div>
+	
 var margin = {top: 20, right: 0, bottom: 20, left: 350},
 	// width = 960 - margin.right - margin.left,
 	// height = 500 - margin.top - margin.bottom;
@@ -273,6 +187,8 @@ var svg = d3.select("body").append("svg")
 root = treeData[0];
 root.x0 = height / 2;
 root.y0 = 0;
+
+</div>
 
 function collapse(d) {
   if (d.children) {
