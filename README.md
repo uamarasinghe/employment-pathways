@@ -6,7 +6,7 @@ Build employment pathways using ONET occupations and tree strucutres. For any oc
 
 ## Getting Started
 
-![Alt Text](https://giphy.com/gifs/rFm7EdwjTtBG1wpUQI)
+![hippo](https://giphy.com/gifs/rFm7EdwjTtBG1wpUQI)
 
 Visualisation [HERE](https://uamarasinghe.github.io/employment-pathways.github.io/). At the bottom of the page, you'll find a dropdown where you can chose the occupation you want to build the employment pathway for. 
 
