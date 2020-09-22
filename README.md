@@ -1,12 +1,10 @@
-# employment-pathways
-
 # Visualizing Employment Pathways using ONET Occupations
 
 Build employment pathways using ONET occupations and tree strucutres. For any occupation, identify its 5 nearest neighoubring occupations - this will be the nodes of the first level of depth of the tree. Repeat this for each occupation node in the tree, up to 4 levels of depth. 
 
-## Getting Started
-
 ![Cashier demo](epp-cashier.gif)
+
+## Getting Started
 
 Visualisation [HERE](https://uamarasinghe.github.io/employment-pathways.github.io/). At the bottom of the page, you'll find a dropdown where you can chose the occupation you want to build the employment pathway for. 
 
