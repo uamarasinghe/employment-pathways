@@ -2,7 +2,7 @@
 
 Build employment pathways using ONET occupations and tree strucutres. For any occupation, identify its 5 nearest neighoubring occupations - this will be the nodes of the first level of depth of the tree. Repeat this for each occupation node in the tree, up to 4 levels of depth. 
 
-![Cashier demo](epp-cashier.gif)
+![Cashier demo](epp-cashier-loop.gif)
 
 ## Getting Started
 
